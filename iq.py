@@ -29,7 +29,6 @@ class Model:
         self.ah += self.bh
         self.ah = sigmoid(self.ah)
 
-        self.ao = sigmoid(self.ah @ self.Wo + self.bo)
         self.ao = self.ah @ self.Wo
         self.ao += self.bo
         self.ao = sigmoid(self.ao)
@@ -42,21 +41,21 @@ class Model:
 
     def evaluate(self, X, Y):
         preds = self.predict(X)
-        true = np.argmax(Y, axis=1)
-        eq = np.equal(preds, true)
-        return eq.sum() / eq.shape[0]
+        targets = np.argmax(Y, axis=1)
+        eq = np.equal(preds, targets)
+        return eq.sum() / len(eq)
 
     def backpropagation(self, Y):
-        m = Y.shape[0]  # minibatch size for gradient averaging
+        m = len(Y)  # minibatch size for gradient averaging
         eta = self.lrate / m
 
         cost = mse(Y, self.ao)
 
         # backpropagate the errors
-        # delta_o = mse.derivative(Y, self.ao) * sigmoid.derivative(self.ao)
-        delta_o = (Y - self.ao) * self.ao * (1 - self.ao)
-        # delta_h = delta_o @ self.Wo.T * sigmoid.derivative(self.ah)
-        delta_h = delta_o @ self.Wo.T * self.ah * (1 - self.ah)
+        delta_o = mse.derivative(Y, self.ao) * sigmoid.derivative(self.ao)
+        # delta_o = (self.ao - Y) * self.ao * (1 - self.ao)
+        delta_h = delta_o @ self.Wo.T * sigmoid.derivative(self.ah)
+        # delta_h = delta_o @ self.Wo.T * self.ah * (1 - self.ah)
 
         # calculate weight gradients
         grad_Wo = self.ah.T @ delta_o

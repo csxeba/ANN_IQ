@@ -18,7 +18,7 @@ def pull_mnist_data(path):
 
 
 def shuffle_data(X, Y):
-    shuffargs = np.arange(Y.shape[0])
+    shuffargs = np.arange(len(Y))
     np.random.shuffle(shuffargs)
     return X[shuffargs], Y[shuffargs]
 
