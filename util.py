@@ -50,7 +50,8 @@ class MSE:
 
     @staticmethod
     def derivative(y: np.ndarray, a: np.ndarray) -> np.ndarray:
-        return y - a
+        asd = y - a
+        return asd
 
     def __str__(self):
         return "MSE"

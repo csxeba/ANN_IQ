@@ -1,11 +1,14 @@
 import time
 
+from csxdata import roots
+
+
 from ANN_IQ.util import *
 # Wildcard import defines cost and activation functions
 # also import numpy from the above namespace!
 
 # Define hyperparameters
-LRATE = 0.01
+LRATE = 0.001
 BSIZE = 20
 EPOCHS = 30
 
@@ -33,7 +36,7 @@ class Model:
 
         self.hidden.activations = X @ self.hidden.weights
         self.hidden.activations += self.hidden.biases
-        self.hidden.activations = relu(self.hidden.activations)
+        self.hidden.activations = sigmoid(self.hidden.activations)
 
         self.output.activations = self.hidden.activations @ self.output.weights
         self.output.activations += self.output.biases
@@ -49,7 +52,6 @@ class Model:
         preds = self.predict(X)
         targets = np.argmax(Y, axis=1)
         eq = np.equal(preds, targets)
-        assert len(set(ar.shape[0] for ar in (X, Y, preds, targets, eq))) == 1
         return eq.sum() / len(eq)
 
     def backpropagation(self, Y):
@@ -102,7 +104,7 @@ class Model:
 
 
 start = time.time()
-mnistpath = "D:/Data/misc/mnist.pkl.gz"
+mnistpath = roots["misc"] + "mnist.pkl.gz"
 
 # Instanciate functions
 sigmoid = Sigmoid()
