@@ -35,6 +35,15 @@ class Sigmoid:
         return "Sigmoid"
 
 
+class ReLU:
+    def __call__(self, z: np.ndarray) -> np.ndarray:
+        return np.greater(z, 0) * z
+
+    @staticmethod
+    def derivative(a: np.ndarray) -> np.ndarray:
+        return np.greater(a, 0).astype(float)
+
+
 class MSE:
     def __call__(self, y: np.ndarray, a: np.ndarray) -> np.ndarray:
         return 0.5 * np.sum((y - a)**2, axis=0)
