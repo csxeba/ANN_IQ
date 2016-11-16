@@ -5,6 +5,7 @@ def pull_mnist_data(path):
     from csxdata.utilities.parsers import mnist_tolearningtable
     Xs, Ys = mnist_tolearningtable(path, fold=False)
     N = Ys.shape[0]
+    # Xs += 1e-7
 
     onehot = np.zeros((N, 10), dtype="float32")
     for i, y in enumerate(Ys):
@@ -18,14 +19,14 @@ def pull_mnist_data(path):
 
 
 def shuffle_data(X, Y):
-    shuffargs = np.arange(len(Y))
+    shuffargs = np.arange(Y.shape[0])
     np.random.shuffle(shuffargs)
     return X[shuffargs], Y[shuffargs]
 
 
 class Sigmoid:
     def __call__(self, z: np.ndarray) -> np.ndarray:
-        return 1 / (1 + np.exp(z))
+        return 1 / (1 + np.exp(-z))
 
     @staticmethod
     def derivative(a: np.ndarray) -> np.ndarray:
@@ -46,11 +47,11 @@ class ReLU:
 
 class MSE:
     def __call__(self, y: np.ndarray, a: np.ndarray) -> np.ndarray:
-        return 0.5 * np.sum((y - a)**2, axis=0)
+        return 0.5 * np.sum((y - a)**2)
 
     @staticmethod
     def derivative(y: np.ndarray, a: np.ndarray) -> np.ndarray:
-        return y - a
+        return a - y
 
     def __str__(self):
         return "MSE"
