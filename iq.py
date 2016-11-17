@@ -2,9 +2,8 @@ import time
 
 from ANN_IQ.util import *
 
-
 # Wildcard import defines cost and activation functions
-# also import numpy from the above namespace!
+# also imports numpy from the above namespace!
 
 # Define hyperparameters according to the first part of
 # M. Nielsen's neural network tutorial:
@@ -97,10 +96,10 @@ class Model:
 
         # calculate the output layer's error
         delta_o = mse.derivative(Y, self.output.activations) * \
-                  self.output.actfn.derivative(self.output.activations)
+            self.output.actfn.derivative(self.output.activations)
         # backpropagate the error to the hidden layer
         delta_h = delta_o @ self.output.weights.T * \
-                  self.output.actfn.derivative(self.hidden.activations)
+            self.output.actfn.derivative(self.hidden.activations)
 
         # calculate weight gradients
         grad_Wo = self.hidden.activations.T @ delta_o
@@ -218,7 +217,7 @@ class Model:
             rounds = str(len(ws))
             for i in range(len(ws)):  # This is done for every weight
                 print("\rCalculating numerical gradients... {0:>{width}} / {1}"
-                      .format(i+1, rounds, width=len(rounds)), end="")
+                      .format(i + 1, rounds, width=len(rounds)), end="")
 
                 perturbation[i] += epsilon
 
@@ -231,7 +230,7 @@ class Model:
                 perturbation[i] = 0.0
 
             print()
-            return grads / (2*epsilon)
+            return grads / (2 * epsilon)
 
         def get_relative_error_and_diffs():
             norm = np.linalg.norm  # alias this function (the vector norm)
