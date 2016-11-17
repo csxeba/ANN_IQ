@@ -11,7 +11,7 @@ def get_keras_net():
 
     model = Sequential([
         Dense(input_dim=784, output_dim=30, activation="sigmoid"),
-        Dense(input_dim=60, output_dim=10, activation="sigmoid")
+        Dense(output_dim=10, activation="sigmoid")
     ])
     model.compile(optimizer=SGD(lr=3.0), loss="mse", metrics=["acc"])
 
@@ -31,9 +31,9 @@ def get_theano_net():
     m = inputs.shape[0].astype("float32")
     eta = np.array([3.0]).astype("float32")
 
-    Wh = theano.shared(np.random.randn(784, 60).astype("float32"))
-    Wo = theano.shared(np.random.randn(60, 10).astype("float32"))
-    bh = theano.shared(np.zeros([60], dtype="float32"))
+    Wh = theano.shared(np.random.randn(784, 30).astype("float32"))
+    Wo = theano.shared(np.random.randn(30, 10).astype("float32"))
+    bh = theano.shared(np.zeros([30], dtype="float32"))
     bo = theano.shared(np.zeros([10], dtype="float32"))
 
     activation = T.nnet.sigmoid(inputs.dot(Wh) + bh)
@@ -70,7 +70,7 @@ def get_brainforged_net():
 
     model = Network(CData(roots["misc"] + "mnist.pkl.gz", 0.18),
                     eta=3.0, lmbd1=0, lmbd2=0, mu=0, cost="mse")
-    model.add_fc(60, activation="sigmoid")
+    model.add_fc(30, activation="sigmoid")
     model.finalize_architecture(activation="sigmoid")
 
     return model  # THIS IS ALSO A NETWORK OBJECT!
