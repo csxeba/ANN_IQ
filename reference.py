@@ -28,7 +28,8 @@ def get_theano_net():
     inputs = T.matrix(dtype="float32")
     targets = T.matrix(dtype="float32")
 
-    eta = np.array([3.0]).astype("float32") / inputs.shape[0].astype("float32")
+    m = inputs.shape[0].astype("float32")
+    eta = np.array([3.0]).astype("float32")
 
     Wh = theano.shared(np.random.randn(784, 60).astype("float32"))
     Wo = theano.shared(np.random.randn(60, 10).astype("float32"))
@@ -40,7 +41,7 @@ def get_theano_net():
 
     prediction = T.argmax(activation, axis=1)
 
-    cost = T.sum((targets - activation) ** 2)
+    cost = T.sum((targets - activation) ** 2) / m
 
     update_Wh = Wh - theano.grad(cost, wrt=Wh) * eta
     update_Wo = Wo - theano.grad(cost, wrt=Wo) * eta
@@ -72,18 +73,20 @@ def get_brainforged_net():
     model.add_fc(60, activation="sigmoid")
     model.finalize_architecture(activation="sigmoid")
 
-    return model  # THIS IS A NETWORK OBJECT!
+    return model  # THIS IS ALSO A NETWORK OBJECT!
 
 
 def train_keras():
     print("-"*25)
-    print("Keras Training!s")
+    print("Keras Training!")
     network = get_keras_net()
     (X, y), validation = pull_mnist_data(mnistpath)
     network.fit(X, y, batch_size=20, nb_epoch=30, validation_data=validation)
 
 
 def train_brainforge():
+    print("-"*25)
+    print("Brainforge training!")
     network = get_brainforged_net()
     network.fit(batch_size=20, epochs=30, monitor=["acc"])
 
@@ -101,12 +104,12 @@ def train_theano():
             cost = fit_batch(X[i:i+20], y[i:i+20])[0]  # dat indexing...
             print("\rBatch {0:>{w}} / {1}; Cost: {2:.4f}"
                   .format(i+20, N, float(cost), w=len(str(N))), end="")
-    print()
+        print()
 
 
 mnistpath = "./mnist.pkl.gz"
 
 if __name__ == '__main__':
-    # train_keras()
-    # train_theano()
+    train_keras()
+    train_theano()
     train_brainforge()
