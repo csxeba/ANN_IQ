@@ -1,6 +1,6 @@
 import numpy as np
 
-from ANN_IQ.util import pull_mnist_data
+from include.util import pull_mnist_data
 
 
 def get_keras_net():

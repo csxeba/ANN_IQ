@@ -14,7 +14,7 @@ def mnist_to_learning_table(source: str):
     # Of course by the time I wrote this comment, rationalizing my
     # laziness, I could've wrote a better, more readable implementation,
     # yet here I am still, leaving this method as it is, instanciating
-    # private classes from of the pickle module...
+    # private classes from the pickle module...
     # But alas, more disgusting things are happening all around us, so
     # why start to change the world by changing myself first?
     f = gzip.open(source)
@@ -28,21 +28,19 @@ def mnist_to_learning_table(source: str):
     # - 50k learning
     # - 10k testing (for hyperparameter optimization)
     # - 10k validation (for final model validation)
-    # We unify them and return the complete dataset.
+    # We unify them and reslice the complete dataset.
     questions = np.concatenate((tup[0][0], tup[1][0], tup[2][0]))
-    questions = questions.astype("float32", copy=False)
+    questions = questions.astype("float32")
     targets = np.concatenate((tup[0][1], tup[1][1], tup[2][1]))
     return questions, targets
 
 
-def pull_mnist_data(path):
-    Xs, Ys = mnist_to_learning_table(path)
-    N = Ys.shape[0]
+def pull_mnist_data(path, split=0.1):
+    X, Y = mnist_to_learning_table(path)
+    number_of_categories = len(np.unique(Y))
 
-    # We create a one-hot representation from the classes is Y.
-    onehot = np.zeros((N, 10), dtype="float32")
-    for i, y in enumerate(Ys):
-        onehot[i, y] += np.asscalar(np.array([1.0]))
+    # We create a one-hot representation from the classes in Y.
+    onehot = np.eye(number_of_categories)[Y]
     # onehot is shaped thus:
     # (N, 10), where N is the number of examples, 10 is the 1-hot vector of the true label:
     # e.g. the number 6 is encoded so: [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
@@ -52,11 +50,22 @@ def pull_mnist_data(path):
     # (N, 784), where N is the number of examples, 784 = 28x28 represents the pixels.
     # values of X are normalized from 0.0 - 1.0 and stored as 32 bit floats (double)
 
-    mnistX, mnistY = shuffle_data(Xs, onehot)
-    testX, testY = mnistX[:10000], mnistY[:10000]
-    mnistX, mnistY = mnistX[10000:], mnistY[10000:]
+    mnistX, mnistY = shuffle_data(X, onehot)
+    if not split:
+        return mnistX, mnistY
 
-    return (mnistX, mnistY), (testX, testY)
+    number_of_samples = len(X)
+    indices = np.arange(number_of_samples)
+    np.random.shuffle(indices)
+
+    number_of_testing_samples = int(number_of_samples * split)
+    testing_data_indices = indices[:number_of_testing_samples]
+    learning_data_indices = indices[number_of_testing_samples:]
+
+    testX, testY = mnistX[testing_data_indices], mnistY[testing_data_indices]
+    mnistX, mnistY = mnistX[learning_data_indices], mnistY[learning_data_indices]
+
+    return mnistX, mnistY, testX, testY
 
 
 def shuffle_data(X, Y):
@@ -122,33 +131,45 @@ class MSE:
     applicable to any type of problem (classification or regression)
     https://en.wikipedia.org/wiki/Mean_squared_error
     """
-    def __call__(self, y: np.ndarray, a: np.ndarray) -> np.ndarray:
-        return 0.5 * np.sum((a - y)**2) / y.shape[0]
+    def __call__(self, targets: np.ndarray, outputs: np.ndarray) -> np.ndarray:
+        return 0.5 * np.sum((outputs - targets) ** 2) / targets.shape[0]
 
     @staticmethod
-    def derivative(y: np.ndarray, a: np.ndarray) -> np.ndarray:
-        return a - y
-
-    def __str__(self):
-        return "MSE"
+    def derivative(targets: np.ndarray, outputs: np.ndarray) -> np.ndarray:
+        # This is the true derivative of the MSE. Best to use with linear output neurons
+        return outputs - targets
 
 
-class Xent:
+class BXent:
     """
-    The cross-entropy cost function,
-    applicable only to classification problems (like MNIST)
+    The binary cross-entropy cost function,
+    applicable to 2-class and multiclass-multilabel classification problems
     https://en.wikipedia.org/wiki/Cross_entropy
     """
 
-    def __call__(self, y: np.ndarray, a: np.ndarray) -> np.ndarray:
+    def __call__(self, targets: np.ndarray, outputs: np.ndarray) -> np.ndarray:
         # Basically -log(a) at the "right" neuron, -log(1 - a) otherwise
         # By right neuron I mean "the output neuron representing the correct label"
-        return -np.sum(y * np.log(a) + (1 - y) * np.log(1 - a)) / y.shape[0]
+        return -np.sum(targets * np.log(outputs) + (1 - targets) * np.log(1 - outputs)) / targets.shape[0]
 
     @staticmethod
-    def derivative(y: np.ndarray, a: np.ndarray) -> np.ndarray:
-        # The denominator is factored out, if used with sigmoid output units!
-        return (y - a) / ((a - 1) * a)
+    def derivative(targets: np.ndarray, outputs: np.ndarray) -> np.ndarray:
+        # Simplified form -> only valid with sigmoid output neurons
+        return outputs - targets
 
-    def __str__(self):
-        return "MSE"
+
+class CXent:
+    """
+    The categorical cross-entropy cost function,
+    applicable to multiclass problems
+    https://en.wikipedia.org/wiki/Cross_entropy
+    """
+
+    def __call__(self, targets: np.ndarray, outputs: np.ndarray) -> np.ndarray:
+        # Equivalent to the negative log likelihood
+        return np.sum(targets * np.log(outputs)) / -targets.shape[0]
+
+    @staticmethod
+    def derivative(targets: np.ndarray, outputs: np.ndarray) -> np.ndarray:
+        # Simplified from -> only valid with softmax output neurons
+        return outputs - targets  # / ((outputs - 1) * outputs)

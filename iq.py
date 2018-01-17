@@ -1,6 +1,6 @@
 import time
 
-from ANN_IQ.util import *
+from include.util import *
 
 # Wildcard import defines cost and activation functions
 # also imports numpy from the above namespace!
@@ -15,10 +15,7 @@ EPOCHS = 30
 
 # Instanciate activation and cost function wrappers
 sigmoid = Sigmoid()
-# tanh = Tanh()
-# relu = ReLU
 mse = MSE()
-# xent = Xent()
 
 mnistpath = "./mnist.pkl.gz"
 
